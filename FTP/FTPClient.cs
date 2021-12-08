@@ -23,29 +23,32 @@ namespace FTP
             _id = id;
             _password = password;
         }
-        
+
         // 파일업로드 
         public void UpLoad(string filePath, string uploadPath)
         {
+            //FTP다운로드관련 URL, Method설정(UploadFile)
             string uri = string.Format("ftp://{0}/{1}", _serverIP, uploadPath);
-
             FtpWebRequest request = (FtpWebRequest)WebRequest.Create(uri);
-            request.Method = WebRequestMethods.Ftp.UploadFile;                  //업로드파일
+            request.Method = WebRequestMethods.Ftp.UploadFile;                      
             request.Credentials = new NetworkCredential(_id, _password);
 
-            char[] fileContents;
-            using (StreamReader sourceStream = new StreamReader(filePath))
+            //파일정보를 Byte로열기
+            byte[] fileContents = null;
+            using (BinaryReader br = new BinaryReader(File.Open(filePath, FileMode.Open)))
             {
-                fileContents = new char[(int)sourceStream.BaseStream.Length];
-                sourceStream.Read(fileContents, 0, (int)sourceStream.BaseStream.Length);
+                long dataLength = br.BaseStream.Length;
+                fileContents = new byte[br.BaseStream.Length];
+                fileContents = br.ReadBytes((int) br.BaseStream.Length);
             }
-            request.ContentLength = fileContents.Length;
 
             //FTP서버에 파일전송처리
+            request.ContentLength = fileContents.LongLength;
             using (Stream requestStream = request.GetRequestStream())
             {
-                requestStream.Write(Encoding.Default.GetBytes(fileContents), 0, fileContents.Length);
+                requestStream.Write(fileContents, 0, fileContents.Length);
             }
+
             //FTP전송결과확인
             using (FtpWebResponse response = (FtpWebResponse)request.GetResponse())
             {
@@ -54,8 +57,9 @@ namespace FTP
         }
 
         // 파일다운로드 
-        public void DownLoad(string downloadPath, string saveFilePath )
+        public void DownLoad(string downloadPath, string saveFilePath)
         {
+            //FTP다운로드관련 URL, Method설정(DownloadFile)
             string uri = string.Format("ftp://{0}/{1}", _serverIP, downloadPath);
             FtpWebRequest request = (FtpWebRequest)WebRequest.Create(uri);
             request.Method = WebRequestMethods.Ftp.DownloadFile;
@@ -65,49 +69,33 @@ namespace FTP
             FtpWebResponse response = (FtpWebResponse)request.GetResponse();
             Stream responseStream = response.GetResponseStream();
 
-            //FTP다운받은 Stream정보 로컬시스템에 파일저장
-            using (StreamWriter sw = new StreamWriter(saveFilePath))
-            {
-                sw.Write(responseStream);
-            }
-            response.Close();
+            ////FTP다운받은 Stream정보 로컬시스템에 파일저장
+            //byte[] fileContents = new byte[responseStream.Length];
+            //int fileContentsLength = responseStream.Read(fileContents,0,(int)responseStream.Length);
+
+            //Stream stream = new FileStream(saveFilePath, FileMode.OpenOrCreate);
+            //using (BinaryWriter bw = new BinaryWriter(responseStream))
+            //{
+            //    bw.Write(fileContents);
+            //}
             Console.WriteLine($"Download Complete, status {response.StatusDescription}");
 
+        }
+
+        private void SaveFileBinaryData(byte[] buffer, string saveFilePath)
+        {
+        }
+
+
+        public void DownLoadAsync()
+        {
         }
 
         // 파일삭제
         public void Delete()
         {
         }
-        //디렉토리생성
-        public void CreateDirectory(string url, string directoryName)
-        {
-            // Get the object used to communicate with the server.
-            FtpWebRequest request = (FtpWebRequest)WebRequest.Create(url);
-            request.Method = WebRequestMethods.Ftp.MakeDirectory;
 
-            // This example assumes the FTP site uses anonymous logon.
-            request.Credentials = new NetworkCredential("user", "1234");
-
-            // Copy the contents of the file to the request stream.
-            byte[] fileContents;
-            using (StreamReader sourceStream = new StreamReader("testimage.png"))
-            {
-                fileContents = Encoding.UTF8.GetBytes(sourceStream.ReadToEnd());
-            }
-
-            request.ContentLength = fileContents.Length;
-
-            using (Stream requestStream = request.GetRequestStream())
-            {
-                requestStream.Write(fileContents, 0, fileContents.Length);
-            }
-
-            using (FtpWebResponse response = (FtpWebResponse)request.GetResponse())
-            {
-                Console.WriteLine($"Upload File Complete, status {response.StatusDescription}");
-            }
-        }
 
     }
 }

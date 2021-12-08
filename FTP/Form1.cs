@@ -16,7 +16,6 @@ namespace FTP
         string _ftpPassword = "1234";
         string _ftpServer = "127.0.0.1";
 
-
         string _uploadFilePath = "testimage.png";
         string _downloadFilePath = "testimage_download.png";
 
@@ -34,8 +33,8 @@ namespace FTP
         {
             FTPClient ftpClient = new FTPClient(_ftpServer, _ftpID, _ftpPassword);
             ftpClient.DownLoad(_uploadFilePath, _downloadFilePath);
-             
-             
+
+            //picDownImage.BackgroundImage = Image.FromFile(_downloadFilePath);
         }
     }
 }
