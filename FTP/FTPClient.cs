@@ -54,6 +54,7 @@ namespace FTP
             {
                 Console.WriteLine($"Upload File Complete, status {response.StatusDescription}");
             }
+        
         }
 
         // 파일다운로드 
@@ -69,17 +70,26 @@ namespace FTP
             FtpWebResponse response = (FtpWebResponse)request.GetResponse();
             Stream responseStream = response.GetResponseStream();
 
-            ////FTP다운받은 Stream정보 로컬시스템에 파일저장
-            //byte[] fileContents = new byte[responseStream.Length];
-            //int fileContentsLength = responseStream.Read(fileContents,0,(int)responseStream.Length);
+            int fileContentsLength = 4096;
+            byte[] fileContents = new byte[fileContentsLength];
 
-            //Stream stream = new FileStream(saveFilePath, FileMode.OpenOrCreate);
-            //using (BinaryWriter bw = new BinaryWriter(responseStream))
-            //{
-            //    bw.Write(fileContents);
-            //}
-            Console.WriteLine($"Download Complete, status {response.StatusDescription}");
+            Stream stream = new FileStream(saveFilePath, FileMode.Create);
 
+            //이진데이터로쓰기
+            using (BinaryWriter bw = new BinaryWriter (stream))
+            {
+                using (BinaryReader br = new BinaryReader(responseStream))
+                {
+                    fileContentsLength = br.Read(fileContents, 0, fileContentsLength);
+                    while (fileContentsLength > 0)
+                    {
+                        fileContentsLength = br.Read(fileContents, 0, fileContentsLength);
+                        bw.Write(fileContents);
+                        fileContents = new byte[fileContentsLength];
+                    }
+                }
+
+            }
         }
 
         private void SaveFileBinaryData(byte[] buffer, string saveFilePath)

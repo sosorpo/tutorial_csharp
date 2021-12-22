@@ -28,13 +28,15 @@ namespace FTP
         {
             FTPClient ftpClient = new FTPClient(_ftpServer,_ftpID,_ftpPassword);
             ftpClient.UpLoad(_uploadFilePath, _uploadFilePath);
+            picUpLoad.Load(string.Format(@"{0}",_uploadFilePath));
+            picUpLoad.SizeMode = PictureBoxSizeMode.StretchImage;
         }
         private void btnDownLoad_Click(object sender, EventArgs e)
         {
             FTPClient ftpClient = new FTPClient(_ftpServer, _ftpID, _ftpPassword);
             ftpClient.DownLoad(_uploadFilePath, _downloadFilePath);
-
-            //picDownImage.BackgroundImage = Image.FromFile(_downloadFilePath);
+            picDownLoad.Load(string.Format(@"{0}", _uploadFilePath));
+            picDownLoad.SizeMode = PictureBoxSizeMode.StretchImage;
         }
     }
 }
